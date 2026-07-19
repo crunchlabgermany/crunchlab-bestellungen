@@ -1,0 +1,1 @@
+import { redirect } from "react-router";import { authenticate } from "../shopify.server";import { createOAuthUrl } from "../services/meta/meta-oauth.server";export const loader=async({request})=>{const{session}=await authenticate.admin(request);return redirect(await createOAuthUrl(session.shop))};

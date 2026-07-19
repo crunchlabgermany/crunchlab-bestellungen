@@ -438,3 +438,182 @@ model CeoKnowledgeReport {
 
   @@index([shop, createdAt])
 }
+
+model SocialAccount {
+  id                Int                @id @default(autoincrement())
+  shop              String
+  platform          String
+  accountType       String
+  externalAccountId String
+  accountName       String
+  accountImageUrl   String?
+  businessId        String?
+  instagramName     String?
+  status            String             @default("NOT_CONNECTED")
+  permissions       String             @default("[]")
+  tokenReference    String?
+  tokenExpiresAt    DateTime?
+  lastValidatedAt   DateTime?
+  lastSyncedAt      DateTime?
+  active            Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  posts             SocialPost[]
+  publishLogs       SocialPublishLog[]
+
+  @@unique([shop, platform, externalAccountId])
+  @@index([shop, platform, active])
+}
+
+model SocialPost {
+  id                 Int                @id @default(autoincrement())
+  shop               String
+  socialAccountId    Int?
+  platform           String             @default("FACEBOOK")
+  postType           String
+  title              String?
+  description        String
+  caption            String?
+  linkUrl            String?
+  callToAction       String?
+  status             String             @default("DRAFT")
+  createdByAi        Boolean            @default(false)
+  scheduledFor       DateTime?
+  approvedAt         DateTime?
+  publishedAt        DateTime?
+  externalPostId     String?
+  externalPostUrl    String?
+  errorMessage       String?
+  publishFingerprint String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  socialAccount      SocialAccount?     @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+  assets             SocialPostAsset[]
+  approvals          SocialApproval[]
+  publishLogs        SocialPublishLog[]
+
+  @@index([shop, status, scheduledFor])
+  @@index([socialAccountId])
+}
+
+model SocialMediaAsset {
+  id           Int               @id @default(autoincrement())
+  shop         String
+  fileName     String
+  originalName String
+  title        String?
+  description  String?
+  tags         String?
+  mimeType     String
+  fileType     String
+  storageUrl   String
+  thumbnailUrl String?
+  fileSize     Int
+  width        Int?
+  height       Int?
+  duration     Float?
+  status       String            @default("ACTIVE")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  posts        SocialPostAsset[]
+  blob         SocialMediaBlob?
+
+  @@index([shop, status, createdAt])
+}
+
+model SocialMediaBlob {
+  id        Int              @id @default(autoincrement())
+  assetId   Int              @unique
+  data      Bytes
+  createdAt DateTime         @default(now())
+  asset     SocialMediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model SocialPostAsset {
+  id           Int              @id @default(autoincrement())
+  socialPostId Int
+  assetId      Int
+  position     Int              @default(0)
+  createdAt    DateTime         @default(now())
+  socialPost   SocialPost       @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+  asset        SocialMediaAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([socialPostId, assetId])
+  @@index([assetId])
+}
+
+model SocialApproval {
+  id              Int        @id @default(autoincrement())
+  shop            String
+  socialPostId    Int
+  status          String     @default("PENDING")
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  socialPost      SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, socialPostId])
+  @@index([shop, status])
+}
+
+model SocialPublishLog {
+  id              Int            @id @default(autoincrement())
+  shop            String
+  socialPostId    Int
+  socialAccountId Int?
+  action          String
+  requestType     String
+  success         Boolean
+  externalPostId  String?
+  errorCode       String?
+  errorMessage    String?
+  createdAt       DateTime       @default(now())
+  socialPost      SocialPost     @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+  socialAccount   SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+
+  @@index([shop, createdAt])
+  @@index([socialPostId])
+}
+
+model EncryptedCredential {
+  id         Int      @id @default(autoincrement())
+  shop       String
+  reference  String   @unique
+  provider   String
+  ciphertext String
+  iv         String
+  authTag    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([shop, provider])
+}
+
+model MetaOAuthState {
+  id               Int       @id @default(autoincrement())
+  shop             String
+  state            String    @unique
+  encryptedPayload String?
+  payloadIv        String?
+  payloadAuthTag   String?
+  expiresAt        DateTime
+  consumedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([shop, expiresAt])
+}
+
+model SocialSettings {
+  id               Int      @id @default(autoincrement())
+  shop             String   @unique
+  testMode         Boolean  @default(true)
+  autopilotEnabled Boolean  @default(false)
+  maxPostsPerDay   Int      @default(1)
+  emergencyStop    Boolean  @default(true)
+  confirmedPageId  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

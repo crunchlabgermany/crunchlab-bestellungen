@@ -1,0 +1,2 @@
+export const REQUIRED_META_PERMISSIONS=["pages_show_list","pages_read_engagement","pages_manage_posts"];
+export function permissionReport(granted=[]){const set=new Set(granted);return REQUIRED_META_PERMISSIONS.map(permission=>({permission,granted:set.has(permission),blockedFunction:permission==="pages_manage_posts"?"Beiträge veröffentlichen":permission==="pages_show_list"?"Unternehmensseiten auswählen":"Seitenstatus prüfen"}))}
