@@ -209,19 +209,23 @@ model IngredientAlias {
 }
 
 model AiAgent {
-  id           Int             @id @default(autoincrement())
-  shop         String
-  slug         String
-  name         String
-  role         String
-  description  String
-  goals        String
-  instructions String
-  active       Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  tasks        AiTask[]
-  activities   AiActivityLog[]
+  id               Int               @id @default(autoincrement())
+  shop             String
+  slug             String
+  name             String
+  role             String
+  description      String
+  goals            String
+  instructions     String
+  active           Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tasks            AiTask[]
+  activities       AiActivityLog[]
+  knowledgeSources KnowledgeSource[]
+  knowledgeEntries KnowledgeEntry[]
+  learningCycles   LearningCycle[]
+  knowledgeGaps    KnowledgeGap[]
 
   @@unique([shop, slug])
   @@index([shop, active])
@@ -315,4 +319,122 @@ model AiSettings {
   autoRunEnabled   Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model KnowledgeSource {
+  id             Int              @id @default(autoincrement())
+  shop           String
+  agentId        Int
+  title          String
+  publisher      String
+  url            String
+  sourceType     String
+  freeAccess     Boolean          @default(true)
+  authorityScore Int              @default(80)
+  active         Boolean          @default(true)
+  lastCheckedAt  DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  agent          AiAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  entries        KnowledgeEntry[]
+
+  @@unique([shop, agentId, url])
+  @@index([shop, agentId, active])
+}
+
+model KnowledgeEntry {
+  id              Int               @id @default(autoincrement())
+  shop            String
+  agentId         Int
+  sourceId        Int
+  title           String
+  summary         String
+  domain          String
+  sourceUrl       String
+  sourceDate      DateTime?
+  confidenceScore Int
+  relevanceScore  Int
+  version         Int               @default(1)
+  tags            String
+  status          String            @default("CURRENT")
+  uncertainty     String?
+  verifiedAt      DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  agent           AiAgent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  source          KnowledgeSource   @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  reviews         KnowledgeReview[]
+
+  @@unique([shop, agentId, title, version])
+  @@index([shop, agentId, status])
+  @@index([shop, verifiedAt])
+}
+
+model KnowledgeReview {
+  id               Int            @id @default(autoincrement())
+  shop             String
+  entryId          Int
+  credible         Boolean
+  current          Boolean
+  traceable        Boolean
+  relevant         Boolean
+  nonContradictory Boolean
+  verdict          String
+  notes            String?
+  reviewedBy       String?
+  createdAt        DateTime       @default(now())
+  entry            KnowledgeEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([shop, entryId])
+}
+
+model LearningCycle {
+  id               Int       @id @default(autoincrement())
+  shop             String
+  agentId          Int
+  cycleKey         String
+  status           String    @default("PLANNED")
+  newFindings      Int       @default(0)
+  outdatedFindings Int       @default(0)
+  updatedTopics    Int       @default(0)
+  openGaps         Int       @default(0)
+  nextTopics       String?
+  summary          String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  agent            AiAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, agentId, cycleKey])
+  @@index([shop, status, createdAt])
+}
+
+model KnowledgeGap {
+  id          Int      @id @default(autoincrement())
+  shop        String
+  agentId     Int
+  title       String
+  description String
+  priority    Int      @default(0)
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  agent       AiAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([shop, agentId, status])
+}
+
+model CeoKnowledgeReport {
+  id              Int      @id @default(autoincrement())
+  shop            String
+  periodStart     DateTime
+  periodEnd       DateTime
+  learnedByAgents String
+  updatedTopics   String
+  knowledgeGaps   String
+  recommendations String
+  createdAt       DateTime @default(now())
+
+  @@index([shop, createdAt])
 }
