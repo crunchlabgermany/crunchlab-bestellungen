@@ -1,0 +1,2 @@
+import { authenticate } from "../shopify.server"; export const loader=async({request})=>{await authenticate.admin(request);return null};
+export default function Versand(){return <s-page heading="Versand"><s-section><s-banner tone="info">Eine direkte Versand-API ist derzeit nicht konfiguriert. Etiketten werden sicher in der jeweiligen Bestellung im Shopify-Admin erstellt; die App behauptet keinen Etikettenstatus ohne bestätigte Shopify-Daten.</s-banner><s-button href="/app/bestellungen">Zu den versandbereiten Bestellungen</s-button></s-section></s-page>}

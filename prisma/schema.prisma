@@ -34,22 +34,164 @@ model Session {
 }
 
 model Ingredient {
-  id             Int      @id @default(autoincrement())
-  shop           String
-  name           String
-  category       String
-  purchaseWeight Float
-  purchasePrice  Float
-  stockWeight    Float    @default(0)
-  minimumStock   Float    @default(0)
-  supplier       String?
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  aliases        IngredientAlias[]
+  id               Int               @id @default(autoincrement())
+  shop             String
+  name             String
+  category         String
+  purchaseWeight   Float
+  purchasePrice    Float
+  stockWeight      Float             @default(0)
+  minimumStock     Float             @default(0)
+  supplier         String?
+  active           Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  aliases          IngredientAlias[]
+  orderIngredients OrderIngredient[]
+  stockMovements   StockMovement[]
 
   @@unique([shop, name])
   @@index([shop])
+}
+
+model Order {
+  id                Int                       @id @default(autoincrement())
+  shop              String
+  shopifyOrderId    String
+  orderName         String
+  createdAtShopify  DateTime
+  paymentStatus     String?
+  fulfillmentStatus String?
+  productionStatus  String                    @default("NEW")
+  priority          Int                       @default(0)
+  blockedReason     String?
+  internalNote      String?
+  totalWeight       Float                     @default(0)
+  totalPriceCents   Int                       @default(0)
+  currencyCode      String                    @default("EUR")
+  customerName      String?
+  customerEmail     String?
+  customerPhone     String?
+  shippingAddress   String?
+  shippingMethod    String?
+  trackingNumber    String?
+  trackingUrl       String?
+  shippingCarrier   String?
+  labelStatus       String                    @default("MISSING")
+  rawData           String?
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  lineItems         OrderLineItem[]
+  ingredients       OrderIngredient[]
+  productionOrder   ProductionOrder?
+  statusHistory     ProductionStatusHistory[]
+  stockMovements    StockMovement[]
+
+  @@unique([shop, shopifyOrderId])
+  @@index([shop, productionStatus])
+  @@index([shop, createdAtShopify])
+}
+
+model OrderLineItem {
+  id                Int               @id @default(autoincrement())
+  shop              String
+  shopifyLineItemId String
+  orderId           Int
+  title             String
+  quantity          Int
+  unitPriceCents    Int               @default(0)
+  currencyCode      String            @default("EUR")
+  configuration     String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ingredients       OrderIngredient[]
+
+  @@unique([shop, shopifyLineItemId])
+  @@index([orderId])
+}
+
+model OrderIngredient {
+  id            Int           @id @default(autoincrement())
+  orderId       Int
+  lineItemId    Int
+  ingredientId  Int?
+  name          String
+  category      String
+  gramsPerMix   Float?
+  totalGrams    Float?
+  mappingStatus String        @default("UNKNOWN")
+  costCents     Int?
+  checked       Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  lineItem      OrderLineItem @relation(fields: [lineItemId], references: [id], onDelete: Cascade)
+  ingredient    Ingredient?   @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+
+  @@unique([lineItemId, name])
+  @@index([orderId])
+  @@index([ingredientId])
+}
+
+model ProductionOrder {
+  id          Int       @id @default(autoincrement())
+  orderId     Int       @unique
+  status      String    @default("NEW")
+  startedAt   DateTime?
+  packedAt    DateTime?
+  readyAt     DateTime?
+  completedAt DateTime?
+  blockedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model ProductionStatusHistory {
+  id             Int      @id @default(autoincrement())
+  shop           String
+  orderId        Int
+  previousStatus String
+  newStatus      String
+  actor          String?
+  note           String?
+  createdAt      DateTime @default(now())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([shop, orderId, createdAt])
+}
+
+model StockMovement {
+  id             Int        @id @default(autoincrement())
+  shop           String
+  ingredientId   Int
+  orderId        Int?
+  type           String
+  quantityGrams  Float
+  idempotencyKey String
+  note           String?
+  createdAt      DateTime   @default(now())
+  ingredient     Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  order          Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([shop, idempotencyKey])
+  @@index([shop, ingredientId])
+  @@index([orderId])
+}
+
+model WebhookEvent {
+  id          Int       @id @default(autoincrement())
+  shop        String
+  webhookId   String
+  topic       String
+  status      String    @default("RECEIVED")
+  error       String?
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([shop, webhookId])
+  @@index([shop, topic, createdAt])
 }
 
 model IngredientAlias {

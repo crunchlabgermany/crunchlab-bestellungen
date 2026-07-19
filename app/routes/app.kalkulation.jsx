@@ -1,0 +1,2 @@
+import { authenticate } from "../shopify.server"; export const loader=async({request})=>{await authenticate.admin(request);return null};
+export default function Kalkulation(){return <s-page heading="Kalkulation"><s-section><s-paragraph>Der Deckungsbeitrag auf Zutatenbasis ist je Bestellung im geschlossenen Bereich „Kalkulation anzeigen“ verfügbar. Weitere Kostenarten können hier ergänzt werden, sobald belastbare Datenquellen vorliegen.</s-paragraph></s-section></s-page>}
