@@ -17,15 +17,6 @@ export const loader = async ({ request }) => {
               createdAt
               displayFinancialStatus
               displayFulfillmentStatus
-              email
-              phone
-
-              customer {
-                firstName
-                lastName
-                email
-                phone
-              }
 
               totalPriceSet {
                 shopMoney {
@@ -240,14 +231,6 @@ export default function Bestellungen() {
         </s-section>
       ) : (
         bestellungen.map((bestellung) => {
-          const kundenname =
-            [
-              bestellung.customer?.firstName,
-              bestellung.customer?.lastName,
-            ]
-              .filter(Boolean)
-              .join(" ") || "Kein Kundenname";
-
           return (
             <s-section
               key={bestellung.id}
@@ -258,21 +241,8 @@ export default function Bestellungen() {
                   <h3 style={ueberschriftStil}>Kunde</h3>
 
                   <p>
-                    <strong>Name:</strong> {kundenname}
-                  </p>
-
-                  <p>
-                    <strong>E-Mail:</strong>{" "}
-                    {bestellung.customer?.email ||
-                      bestellung.email ||
-                      "Nicht angegeben"}
-                  </p>
-
-                  <p>
-                    <strong>Telefon:</strong>{" "}
-                    {bestellung.customer?.phone ||
-                      bestellung.phone ||
-                      "Nicht angegeben"}
+                    Kundendaten werden ohne die erforderliche Shopify-Freigabe
+                    nicht abgefragt.
                   </p>
                 </div>
 
