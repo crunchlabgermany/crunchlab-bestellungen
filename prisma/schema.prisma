@@ -207,3 +207,112 @@ model IngredientAlias {
   @@index([shop])
   @@index([ingredientId])
 }
+
+model AiAgent {
+  id           Int             @id @default(autoincrement())
+  shop         String
+  slug         String
+  name         String
+  role         String
+  description  String
+  goals        String
+  instructions String
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  tasks        AiTask[]
+  activities   AiActivityLog[]
+
+  @@unique([shop, slug])
+  @@index([shop, active])
+}
+
+model AiTask {
+  id           Int             @id @default(autoincrement())
+  shop         String
+  agentId      Int
+  title        String
+  prompt       String
+  context      String?
+  status       String          @default("DRAFT")
+  priority     Int             @default(0)
+  requestedBy  String?
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  agent        AiAgent         @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  results      AiResult[]
+  approvals    AiApproval[]
+  activities   AiActivityLog[]
+
+  @@index([shop, agentId, status])
+  @@index([shop, createdAt])
+}
+
+model AiResult {
+  id             Int          @id @default(autoincrement())
+  shop           String
+  taskId         Int
+  summary        String
+  content        String
+  structuredData String?
+  model          String?
+  tokenUsage     Int?
+  estimatedCost  Decimal?
+  status         String       @default("DRAFT")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  task           AiTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  approvals      AiApproval[]
+
+  @@index([shop, taskId, status])
+}
+
+model AiApproval {
+  id              Int       @id @default(autoincrement())
+  shop            String
+  taskId          Int
+  resultId        Int
+  actionType      String    @default("CONTENT_REVIEW")
+  status          String    @default("PENDING")
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  task            AiTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  result          AiResult  @relation(fields: [resultId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, resultId, actionType])
+  @@index([shop, status])
+}
+
+model AiActivityLog {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  agentId   Int?
+  taskId    Int?
+  action    String
+  details   String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  agent     AiAgent? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  task      AiTask?  @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([shop, createdAt])
+  @@index([taskId])
+}
+
+model AiSettings {
+  id               Int      @id @default(autoincrement())
+  shop             String   @unique
+  approvalRequired Boolean  @default(true)
+  maxTasksPerDay   Int      @default(10)
+  usageLimitCents  Int      @default(0)
+  loggingEnabled   Boolean  @default(true)
+  autoRunEnabled   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

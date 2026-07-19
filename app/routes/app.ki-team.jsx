@@ -1,0 +1,9 @@
+import { useLoaderData } from "react-router";
+import { authenticate } from "../shopify.server";
+import db from "../db.server";
+import { ensureAiTeam } from "../services/ai/agent-registry.server";
+import { getOpenAiConnectionStatus } from "../services/ai/agent-runner.server";
+import { AiTeamNav, cardStyle, gridStyle } from "../ai-team";
+
+export const loader=async({request})=>{const{session}=await authenticate.admin(request);await ensureAiTeam(session.shop);const agents=await db.aiAgent.findMany({where:{shop:session.shop},include:{_count:{select:{tasks:{where:{status:{notIn:["APPROVED","ARCHIVED"]}}}}},activities:{orderBy:{createdAt:"desc"},take:1}},orderBy:{id:"asc"}});return{agents,connection:getOpenAiConnectionStatus()}};
+export default function AiTeam(){const{agents,connection}=useLoaderData();return <s-page heading="KI-Team"><AiTeamNav/>{!connection.configured&&<s-banner tone="info">Die OpenAI-Verbindung ist noch nicht eingerichtet.</s-banner>}<s-section><div style={gridStyle}>{agents.map(agent=><article key={agent.id} style={cardStyle}><div style={{fontSize:34}}>{({marketing:"📣",seo:"🔎","social-media":"🎬","email-marketing":"✉️"})[agent.slug]}</div><h2>{agent.name}</h2><p>{agent.description}</p><p><strong>Status:</strong> {agent.active?"Aktiv":"Inaktiv"}<br/><strong>Offene Aufgaben:</strong> {agent._count.tasks}<br/><strong>Letzte Aktivität:</strong> {agent.activities[0]?new Date(agent.activities[0].createdAt).toLocaleDateString("de-DE"):"Noch keine"}</p><s-button href={`/app/ki-team/${agent.slug}`}>Agent öffnen</s-button></article>)}</div></s-section><s-section><s-banner tone="warning">Phase 1: Das KI-Team erstellt und verwaltet ausschließlich Entwürfe. Es veröffentlicht nichts, versendet keine Nachrichten, verändert keine Shopify-Daten und gibt kein Geld aus.</s-banner></s-section></s-page>}

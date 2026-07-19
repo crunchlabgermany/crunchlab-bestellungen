@@ -24,6 +24,7 @@ export default function App() {
         <s-link href="/app/versand">Versand</s-link>
         <s-link href="/app/kalkulation">Kalkulation</s-link>
         <s-link href="/app/einstellungen">Einstellungen</s-link>
+        <s-link href="/app/ki-team">KI-Team</s-link>
       </s-app-nav>
       <Outlet />
     </AppProvider>
