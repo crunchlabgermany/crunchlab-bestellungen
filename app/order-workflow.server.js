@@ -31,7 +31,7 @@ export async function syncShopifyOrders(shop, shopifyOrders) {
         update: { title: sourceLine.name || sourceLine.title, quantity: sourceLine.quantity, configuration: JSON.stringify(sourceLine.customAttributes || []) },
       });
       for (const parsed of parseLineItem(sourceLine, ingredients)) {
-        totalWeight += Number(parsed.totalGrams || 0);
+        if (parsed.mappingStatus === "MATCHED") totalWeight += Number(parsed.totalGrams || 0);
         await db.orderIngredient.upsert({
           where: { lineItemId_name: { lineItemId: line.id, name: parsed.name } },
           create: { orderId: localOrder.id, lineItemId: line.id, ...parsed },
