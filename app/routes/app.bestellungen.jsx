@@ -59,6 +59,9 @@ export const loader = async ({ request }) => {
       orderBy: {
         name: "asc",
       },
+      include: {
+        aliases: true,
+      },
     }),
   ]);
 
@@ -129,13 +132,50 @@ function findeZutat(attribut, gespeicherteZutaten) {
 
   return gespeicherteZutaten.find((zutat) => {
     const name = normalisiereName(zutat.name);
+    const aliases = (zutat.aliases || []).map((eintrag) =>
+      normalisiereName(eintrag.alias),
+    );
 
-    return schluessel === name || wert === name;
+    return (
+      schluessel === name ||
+      wert === name ||
+      aliases.includes(schluessel) ||
+      aliases.includes(wert)
+    );
   });
+}
+
+function leseKonfiguratorEintraege(attribut) {
+  const schluessel = normalisiereName(attribut.key);
+
+  if (schluessel !== "basis" && schluessel !== "toppings") {
+    return [attribut];
+  }
+
+  return String(attribut.value || "")
+    .split(",")
+    .map((eintrag) => eintrag.trim())
+    .filter(Boolean)
+    .map((eintrag) => {
+      const treffer = eintrag.match(/^(.+?)\s*-\s*(\d+(?:[.,]\d+)?)\s*(kg|g)?$/i);
+
+      if (!treffer) {
+        return {
+          key: schluessel,
+          value: eintrag,
+        };
+      }
+
+      return {
+        key: treffer[1].trim(),
+        value: `${treffer[2]} ${treffer[3] || "g"}`,
+      };
+    });
 }
 
 function ermittleMischung(lineItem, gespeicherteZutaten) {
   return (lineItem.customAttributes || [])
+    .flatMap(leseKonfiguratorEintraege)
     .map((attribut) => {
       const gespeicherteZutat = findeZutat(
         attribut,

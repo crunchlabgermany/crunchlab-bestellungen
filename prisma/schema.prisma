@@ -46,7 +46,22 @@ model Ingredient {
   active         Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  aliases        IngredientAlias[]
 
   @@unique([shop, name])
   @@index([shop])
+}
+
+model IngredientAlias {
+  id           Int        @id @default(autoincrement())
+  shop         String
+  alias        String
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([shop, alias])
+  @@index([shop])
+  @@index([ingredientId])
 }

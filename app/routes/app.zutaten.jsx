@@ -278,14 +278,6 @@ function formatiereGramm(wert) {
   }).format(Number(wert || 0))} g`;
 }
 
-function berechnePreisProGramm(zutat) {
-  if (!zutat.purchaseWeight) {
-    return 0;
-  }
-
-  return zutat.purchasePrice / zutat.purchaseWeight;
-}
-
 function istBestandNiedrig(zutat) {
   return (
     zutat.minimumStock > 0 &&
@@ -476,8 +468,6 @@ export default function Zutaten() {
             }}
           >
             {zutaten.map((zutat) => {
-              const preisProGramm =
-                berechnePreisProGramm(zutat);
               const niedrigerBestand =
                 istBestandNiedrig(zutat);
 
@@ -634,11 +624,9 @@ export default function Zutaten() {
                       </label>
 
                       <label style={feldStil}>
-                        <input
-  type="hidden"
-  name="minimumStock"
-  value="0"
-/>
+                        <span style={beschriftungStil}>
+                          Mindestbestand
+                        </span>
                         <input
                           required
                           name="minimumStock"
