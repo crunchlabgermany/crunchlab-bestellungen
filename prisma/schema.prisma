@@ -466,34 +466,72 @@ model SocialAccount {
 }
 
 model SocialPost {
-  id                 Int                @id @default(autoincrement())
-  shop               String
-  socialAccountId    Int?
-  platform           String             @default("FACEBOOK")
-  postType           String
-  title              String?
-  description        String
-  caption            String?
-  linkUrl            String?
-  callToAction       String?
-  status             String             @default("DRAFT")
-  createdByAi        Boolean            @default(false)
-  scheduledFor       DateTime?
-  approvedAt         DateTime?
-  publishedAt        DateTime?
-  externalPostId     String?
-  externalPostUrl    String?
-  errorMessage       String?
-  publishFingerprint String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  socialAccount      SocialAccount?     @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
-  assets             SocialPostAsset[]
-  approvals          SocialApproval[]
-  publishLogs        SocialPublishLog[]
+  id                  Int                @id @default(autoincrement())
+  shop                String
+  socialAccountId     Int?
+  platform            String             @default("FACEBOOK")
+  postType            String
+  title               String?
+  description         String
+  caption             String?
+  linkUrl             String?
+  callToAction        String?
+  status              String             @default("DRAFT")
+  createdByAi         Boolean            @default(false)
+  scheduledFor        DateTime?
+  approvedAt          DateTime?
+  publishedAt         DateTime?
+  externalPostId      String?
+  externalPostUrl     String?
+  errorMessage        String?
+  hashtags            String?
+  mediaStorageKey     String?
+  tiktokLogId         String?
+  uploadProgress      Int                @default(0)
+  retryCount          Int                @default(0)
+  nextRetryAt         DateTime?
+  lastStatusCheckedAt DateTime?
+  publishFingerprint  String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  socialAccount       SocialAccount?     @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+  assets              SocialPostAsset[]
+  approvals           SocialApproval[]
+  publishLogs         SocialPublishLog[]
 
   @@index([shop, status, scheduledFor])
   @@index([socialAccountId])
+}
+
+model TikTokConnection {
+  id                    Int      @id @default(autoincrement())
+  shop                  String   @unique
+  openId                String
+  username              String?
+  displayName           String?
+  avatarUrl             String?
+  accessTokenEncrypted  String
+  refreshTokenEncrypted String
+  accessTokenExpiresAt  DateTime
+  refreshTokenExpiresAt DateTime
+  scopes                String
+  status                String   @default("CONNECTED")
+  lastTokenRefreshAt    DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([shop, status])
+}
+
+model TikTokOAuthState {
+  id         Int       @id @default(autoincrement())
+  shop       String
+  stateHash  String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([shop, expiresAt])
 }
 
 model SocialMediaAsset {
