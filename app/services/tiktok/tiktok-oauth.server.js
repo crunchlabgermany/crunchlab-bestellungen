@@ -41,6 +41,7 @@ export function statesMatch(left, right) {
 export async function createTikTokAuthorization(shop) {
   const config = tiktokConfiguration();
   if (!config.configured) throw new Error("TikTok OAuth ist noch nicht vollständig konfiguriert.");
+  await db.tikTokOAuthState.deleteMany({ where: { shop, expiresAt: { lte: new Date() } } });
   const state = randomBytes(32).toString("base64url");
   await db.tikTokOAuthState.create({
     data: { shop, stateHash: hashOAuthState(state), expiresAt: new Date(Date.now() + 10 * 60 * 1000) },

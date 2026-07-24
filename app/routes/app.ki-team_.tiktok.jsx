@@ -4,16 +4,12 @@ import db from "../db.server";
 import { AiTeamNav, cardStyle, gridStyle } from "../ai-team";
 import { disconnectTikTok } from "../services/tiktok/tiktok-token.server";
 import { refreshTikTokPostStatus } from "../services/tiktok/tiktok-posts.server";
-import { tiktokConfiguration, TIKTOK_SCOPES } from "../services/tiktok/tiktok-oauth.server";
+import { createTikTokAuthorization, tiktokConfiguration, TIKTOK_SCOPES } from "../services/tiktok/tiktok-oauth.server";
 import { TikTokUploadForm } from "../components/TikTokUploadForm";
 import { handleTikTokUploadForm } from "../services/tiktok/tiktok-upload-action.server";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
-  const requestUrl = new URL(request.url);
-  const oauthQuery = new URLSearchParams({ shop: session.shop });
-  const host = requestUrl.searchParams.get("host");
-  if (host && /^[A-Za-z0-9_-]+$/.test(host)) oauthQuery.set("host", host);
   const [connection, posts] = await Promise.all([
     db.tikTokConnection.findUnique({
       where: { shop: session.shop },
@@ -22,7 +18,8 @@ export const loader = async ({ request }) => {
     db.socialPost.findMany({ where: { shop: session.shop, platform: "TIKTOK" }, orderBy: { createdAt: "desc" }, take: 20 }),
   ]);
   const configuration = tiktokConfiguration();
-  return { connection, posts, oauthStartUrl: `/app/ki-team/tiktok/oauth?${oauthQuery}`, config: { configured: configuration.configured, redirectMatches: configuration.redirectMatches, environment: configuration.environment }, requiredScopes: TIKTOK_SCOPES };
+  const oauthStartUrl = !connection && configuration.configured ? await createTikTokAuthorization(session.shop) : null;
+  return { connection, posts, oauthStartUrl, config: { configured: configuration.configured, redirectMatches: configuration.redirectMatches, environment: configuration.environment }, requiredScopes: TIKTOK_SCOPES };
 };
 
 export const action = async ({ request }) => {
