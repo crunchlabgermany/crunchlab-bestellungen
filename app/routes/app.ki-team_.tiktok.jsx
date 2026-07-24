@@ -59,7 +59,7 @@ export default function TikTok() {
         <p><strong>{connection.displayName || "CrunchLab TikTok"}</strong><br/>@{connection.username || "–"}<br/>Status: {connection.status}<br/>Letzte Token-Aktualisierung: {new Date(connection.lastTokenRefreshAt).toLocaleString("de-DE")}</p>
         <Form method="post" onSubmit={(event) => { if (!window.confirm("TikTok-Verbindung wirklich trennen?")) event.preventDefault(); }}><input type="hidden" name="intent" value="disconnect"/><button>Verbindung trennen</button></Form>
       </div> : config.configured ? <a href={oauthStartUrl} target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"10px 14px",borderRadius:8,background:"#202223",color:"white",fontWeight:700,textDecoration:"none"}}>TikTok verbinden</a> : <s-banner tone="info">TikTok OAuth ist vorbereitet. Zuerst müssen die sicheren Umgebungsvariablen gesetzt und die Redirect-Weiterleitung geprüft werden.</s-banner>}
-      {!config.redirectMatches && <s-banner tone="critical">TIKTOK_REDIRECT_URI muss exakt https://crunch-lab.de/api/tiktok/callback sein.</s-banner>}
+      {!config.redirectMatches && <s-banner tone="critical">TIKTOK_REDIRECT_URI muss exakt https://crunchlab-bestellungen.onrender.com/api/tiktok/callback sein.</s-banner>}
       <p>Umgebung: {config.environment} · Direct Post: deaktiviert bis TikTok-Freigabe</p></div></s-section>
     <s-section heading="Berechtigungen">{requiredScopes.map((scope) => <p key={scope}>{granted.has(scope) ? "✓" : "⚠"} <strong>{scope}</strong></p>)}<p>video.publish ist bewusst nicht Teil der Sandbox-Anforderung.</p></s-section>
     <s-section heading="TikTok-Entwurf erstellen">{connection ? <TikTokUploadForm/> : <p>Zuerst das CrunchLab-TikTok-Konto verbinden.</p>}</s-section>

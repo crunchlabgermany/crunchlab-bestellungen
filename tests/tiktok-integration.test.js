@@ -25,6 +25,17 @@ test("TikTok-Konfiguration verlangt die exakte Redirect URI", () => {
   finally { if (previous === undefined) delete process.env.TIKTOK_REDIRECT_URI; else process.env.TIKTOK_REDIRECT_URI = previous; }
 });
 
+test("TikTok-Konfiguration verwendet den direkt erreichbaren Render-Callback", () => {
+  const previous = process.env.TIKTOK_REDIRECT_URI;
+  delete process.env.TIKTOK_REDIRECT_URI;
+  try {
+    assert.equal(tiktokConfiguration().redirectUri, "https://crunchlab-bestellungen.onrender.com/api/tiktok/callback");
+    assert.equal(tiktokConfiguration().redirectMatches, true);
+  } finally {
+    if (previous !== undefined) process.env.TIKTOK_REDIRECT_URI = previous;
+  }
+});
+
 test("TikTok-Tokens werden verschlüsselt", () => {
   const previous = process.env.TIKTOK_TOKEN_ENCRYPTION_KEY;
   process.env.TIKTOK_TOKEN_ENCRYPTION_KEY = TEST_KEY;

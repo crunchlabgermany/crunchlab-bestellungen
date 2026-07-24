@@ -9,7 +9,7 @@ In Render serverseitig setzen:
 ```text
 TIKTOK_CLIENT_KEY=<Client Key aus TikTok for Developers>
 TIKTOK_CLIENT_SECRET=<Client Secret aus TikTok for Developers>
-TIKTOK_REDIRECT_URI=https://crunch-lab.de/api/tiktok/callback
+TIKTOK_REDIRECT_URI=https://crunchlab-bestellungen.onrender.com/api/tiktok/callback
 TIKTOK_ENV=sandbox
 TIKTOK_TOKEN_ENCRYPTION_KEY=<zufälliger geheimer Wert mit mindestens 32 Zeichen>
 ```
@@ -23,7 +23,7 @@ Website: `https://crunch-lab.de`
 Login-Kit-Redirect URI, exakt und ohne Querystring:
 
 ```text
-https://crunch-lab.de/api/tiktok/callback
+https://crunchlab-bestellungen.onrender.com/api/tiktok/callback
 ```
 
 Scopes:
@@ -40,11 +40,10 @@ video.upload
 
 ## Erforderliche Weiterleitung der Redirect URI
 
-Die Callback-Route existiert in der App als `/api/tiktok/callback`. Da `crunch-lab.de` der Shopify-Shop-Domain entspricht, muss diese URL auf den identischen App-Endpunkt bei Render weitergeleitet werden, ohne Queryparameter (`code`, `state`, `error`) zu entfernen. Prüfen:
+Die Callback-Route existiert in der Render-App als `/api/tiktok/callback`. Die direkte Render-URL wird verwendet, weil `crunch-lab.de` vom Shopify-Storefront bedient wird und `/api/tiktok/callback` dort nicht an die App weiterleitet. Prüfen:
 
 ```text
-https://crunch-lab.de/api/tiktok/callback
-    -> https://crunchlab-bestellungen.onrender.com/api/tiktok/callback
+https://crunchlab-bestellungen.onrender.com/api/tiktok/callback
 ```
 
 Eine normale Shopify-Theme-Seite reicht hierfür nicht aus. Geeignet ist eine kontrollierte Reverse-Proxy-/Edge-Weiterleitung. Erst danach funktioniert OAuth mit der verlangten exakten Domain.

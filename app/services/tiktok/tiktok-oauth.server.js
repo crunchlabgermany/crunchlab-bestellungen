@@ -10,7 +10,7 @@ export const TIKTOK_SCOPES = [
   "video.list",
   "video.upload",
 ];
-export const TIKTOK_REDIRECT_URI = "https://crunch-lab.de/api/tiktok/callback";
+export const TIKTOK_REDIRECT_URI = "https://crunchlab-bestellungen.onrender.com/api/tiktok/callback";
 
 export function tiktokConfiguration() {
   const redirectUri = process.env.TIKTOK_REDIRECT_URI || TIKTOK_REDIRECT_URI;
